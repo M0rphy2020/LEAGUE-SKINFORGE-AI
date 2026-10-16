@@ -18,26 +18,27 @@ class AIConfigurationError(RuntimeError):
 
 
 def _load_local_env() -> None:
-    """Load simple KEY=VALUE settings from .env without overriding process env."""
-    env_file = Path.cwd() / ".env"
-    if not env_file.is_file():
-        return
+    """Load supported settings from the user config and project .env, preserving process env."""
+    env_files = (Path.home() / ".skinforge" / ".env", Path.cwd() / ".env")
     allowed = {"SKINFORGE_AI_BASE_URL", "SKINFORGE_AI_MODEL", "SKINFORGE_AI_API_KEY"}
-    try:
-        lines = env_file.read_text(encoding="utf-8").splitlines()
-    except OSError:
-        return
-    for line in lines:
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or "=" not in stripped:
+    for env_file in env_files:
+        if not env_file.is_file():
             continue
-        key, value = stripped.split("=", 1)
-        key = key.strip()
-        value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
-            value = value[1:-1]
-        if key in allowed and key not in os.environ and value:
-            os.environ[key] = value
+        try:
+            lines = env_file.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or "=" not in stripped:
+                continue
+            key, value = stripped.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+                value = value[1:-1]
+            if key in allowed and key not in os.environ and value:
+                os.environ[key] = value
 
 
 def create_plan(request: str, report: dict[str, Any]) -> str:
