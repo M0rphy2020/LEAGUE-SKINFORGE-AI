@@ -112,7 +112,7 @@ def create_edit_recipe(request: str, inventory: dict[str, Any]) -> str:
                     "You are SkinForge AI, a League of Legends custom-skin texture assistant. "
                     "Return JSON only, exactly shaped as {\"summary\":\"...\",\"edits\":["
                     "{\"operation\":\"tint_texture\",\"source\":\"relative/path.png\","
-                    "\"color\":\"#RRGGBB\",\"strength\":0.0}]}. You may only propose "
+                    "\"color\":\"#RRGGBB\",\"strength\":0.0,\"brightness\":1.0,\"contrast\":1.0,\"saturation\":1.0}]}. You may only propose "
                     "tint_texture operations on raster image files explicitly listed in the supplied "
                     "inventory. source must exactly match a listed relative path. Use at most 20 edits. "
                     "Strength must be 0..1; brightness, contrast and saturation must each be 0..2, where 1 means unchanged. If no appropriate supported texture exists, return an empty "
