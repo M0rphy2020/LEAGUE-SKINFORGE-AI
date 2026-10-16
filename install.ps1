@@ -46,3 +46,6 @@ Write-Host '  skinforge validate "C:\path\to\skin.fantome"'
 Write-Host '  skinforge wad-extract "C:\path\to\Champion.wad.client" --output .\extracted'
 Write-Host ''
 Write-Host 'AI planning needs an API endpoint/model in a local .env file. See .env.example.'
+Write-Host ''
+Write-Host 'Launching the visual SkinForge workspace...' -ForegroundColor Cyan
+& $pythonCommand @pythonPrefix -m skinforge.desktop
