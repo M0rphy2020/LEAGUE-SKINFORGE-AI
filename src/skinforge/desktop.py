@@ -17,10 +17,12 @@ from typing import Any
 
 from skinforge.ai import create_edit_recipe, create_plan
 from skinforge.archive import extract_zip_safe, inspect_zip, validate_zip
+from skinforge.bininspect import inspect_bin
 from skinforge.assets import index_assets
 from skinforge.texture import tint_texture
 from skinforge.updater import UpdateError, check_for_update, install_latest_update
 from skinforge.workflow import apply_edit_recipe, parse_edit_recipe
+from skinforge.wad import extract_wad
 
 BG = "#10131b"
 PANEL = "#191f2b"
@@ -210,6 +212,8 @@ class SkinForgeDesktop:
         asset_actions.pack(fill="x", anchor="w")
         self._button(asset_actions, "Choose extracted folder and index", self._choose_and_index).pack(side="left")
         self._button(asset_actions, "Tint a raster texture", self._tint_texture).pack(side="left", padx=(8, 0))
+        self._button(asset_actions, "Extract .wad.client", self._extract_wad).pack(side="left", padx=(8, 0))
+        self._button(asset_actions, "Inspect .bin", self._inspect_bin).pack(side="left", padx=(8, 0))
         self.asset_table = ttk.Treeview(
             assets_tab, columns=("kind", "size", "path"), show="headings",
         )
@@ -290,6 +294,60 @@ class SkinForgeDesktop:
                 "AI texture workflow complete:\\n" + json.dumps(report, indent=2, ensure_ascii=False)[:30000]
             ),
         )
+
+    def _extract_wad(self) -> None:
+        source = filedialog.askopenfilename(
+            title="Choose a League WAD archive",
+            filetypes=[("League WAD archives", "*.wad.client *.wad"), ("All files", "*.*")],
+        )
+        if not source:
+            return
+        output = filedialog.askdirectory(title="Choose an EMPTY output folder")
+        if not output:
+            return
+        source_path = Path(source).expanduser().resolve()
+        output_path = Path(output).expanduser().resolve()
+        if output_path == source_path.parent or source_path.parent in output_path.parents:
+            if messagebox.askyesno(
+                "Check output folder",
+                "The output folder is inside the source archive's directory tree. Continue only if it is a separate, empty folder.",
+            ) is False:
+                return
+
+        def extract() -> dict[str, Any]:
+            result = extract_wad(source_path, output_path)
+            if result.returncode:
+                detail = (result.stderr or result.stdout or "wadtools extraction failed").strip()
+                raise RuntimeError(f"wadtools exited with code {result.returncode}: {detail[-3000:]}")
+            return {
+                "source": str(source_path),
+                "output": str(output_path),
+                "stdout": result.stdout[-5000:],
+                "stderr": result.stderr[-2000:],
+            }
+
+        def done(report: dict[str, Any]) -> None:
+            self.output_path.set(str(output_path))
+            self._append("WAD extraction completed:\n" + json.dumps(report, indent=2, ensure_ascii=False))
+            self._index(output_path)
+
+        self._run_background("Extracting WAD with LeagueToolkit wadtools", extract, done)
+
+    def _inspect_bin(self) -> None:
+        source = filedialog.askopenfilename(
+            title="Choose a BIN asset",
+            filetypes=[("League BIN assets", "*.bin"), ("All files", "*.*")],
+        )
+        if not source:
+            return
+
+        def done(report: dict[str, Any]) -> None:
+            self._append("BIN inspection (metadata only, not full Riot BIN decoding):\n" +
+                         json.dumps(report, indent=2, ensure_ascii=False))
+            self.ai_output.delete("1.0", "end")
+            self.ai_output.insert("1.0", json.dumps(report, indent=2, ensure_ascii=False))
+
+        self._run_background("Inspecting BIN metadata", lambda: inspect_bin(source), done)
 
     def _tint_texture(self) -> None:
         source = filedialog.askopenfilename(
