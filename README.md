@@ -1,52 +1,67 @@
 # SkinForge AI
 
-AI-assisted League of Legends custom-skin research and packaging toolkit.
+AI-assisted League of Legends custom-skin inspection and development toolkit.
 
-> Status: early development. This project does not promise universal compatibility or guaranteed in-game behavior. All edits are performed on copies and should be validated in a controlled local setup.
+> **Status: early development.** The current version inspects and validates `.fantome` ZIP containers, can extract `.wad.client` archives through LeagueToolkit `wadtools`, and asks an optional AI endpoint for an investigation plan. It does not yet generate complete working 3D skins or guarantee in-game behavior.
 
-## Goals
+## Quick install on Windows
 
-- Inspect `.fantome` ZIP containers safely and report their contents.
-- Inspect WAD assets through a supported external `wadtools` installation.
-- Identify text/JSON BIN candidates without pretending to decode opaque proprietary formats.
-- Produce reproducible reports, integrity checks, and safe workspace copies.
-- Add an optional AI planning layer through an OpenAI-compatible API, with explicit human approval before file modifications.
-- Build toward a desktop UI, asset-reference analysis, and verified export workflows.
+Requirements: Python 3.11+ and Windows PowerShell. From the repository folder, run:
 
-## Initial scope
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\install.ps1
+```
 
-The first milestone is a reliable CLI and test suite for package inspection. Actual model/texture/animation authoring and game-client testing require specialized tools and must be added and validated incrementally.
+The bootstrap installs SkinForge into the current Python environment, installs the official `wadtools` dependency for your Windows user through the upstream installer, and runs a health check. It does not require administrator privileges and skips Explorer context-menu integration. `wadtools` is installed from the official LeagueToolkit repository: https://github.com/LeagueToolkit/wadtools.
 
-## Requirements
+If you already installed SkinForge, run `skinforge setup` to install `wadtools`, or `skinforge doctor` to check dependencies.
 
-- Python 3.11+
-- Optional: `wadtools` from [LeagueToolkit/wadtools](https://github.com/LeagueToolkit/wadtools) for WAD operations.
-- Optional: an OpenAI-compatible API endpoint for AI-assisted planning.
+## Basic commands
 
-## Quick start
-
-```bash
-python -m venv .venv
-# Windows: .venv\\Scripts\\activate
-# macOS/Linux: source .venv/bin/activate
-python -m pip install -e .
-skinforge inspect path/to/skin.fantome
-skinforge validate path/to/skin.fantome
+```powershell
+skinforge inspect "C:\path\to\skin.fantome"
+skinforge validate "C:\path\to\skin.fantome"
+skinforge bin-inspect "C:\path\to\asset.bin"
+skinforge wad-extract "C:\path\to\Champion.wad.client" --output .\extracted
 skinforge doctor
+```
+
+`inspect` reports package contents and hashes. `validate` checks archive paths and CRCs. `wad-extract` writes to a separate output directory and refuses to overwrite a non-empty one.
+
+## AI: what works today?
+
+The AI layer sends a package report and your request to an OpenAI-compatible chat-completions endpoint. It can produce an investigation plan and separate confirmed observations from hypotheses. It currently **does not** directly edit model/texture/animation assets, compile a custom skin, or verify the result in-game.
+
+To configure it, copy `.env.example` to `.env` and set your provider's base URL, model name, and API key if required. Keep `.env` private and never commit credentials. Then run:
+
+```powershell
+skinforge ai-plan "C:\path\to\skin.fantome" --request "Describe the issue or custom-skin goal"
+```
+
+The project loads only the three documented `SKINFORGE_AI_*` settings from `.env`; existing process environment values take precedence. AI output is advisory.
+
+## Current capabilities and next milestones
+
+- Safe archive inspection, SHA-256 reporting, CRC/path validation.
+- `wadtools` integration for `.wad` and `.wad.client` extraction.
+- Conservative BIN inspection for readable text/JSON candidates; opaque BIN data is not falsely claimed to be decoded.
+- Optional AI-assisted investigation plans.
+- Planned: deeper BIN parsing, cross-asset references, reversible asset edits, texture/model workflows, previewing, packaging, and a desktop UI.
+
+## Development
+
+```powershell
+python -m pip install -e ".[dev]"
+pytest
+ruff check src tests
 ```
 
 ## Safety
 
 - Never run unknown binaries embedded in a skin package.
-- Work on copies; preserve source packages and write outputs to a separate directory.
-- Treat AI suggestions as proposals, not proof that an asset will work in-game.
-- Do not use this project to bypass anti-cheat, tamper with accounts, or modify live game memory.
-
-## Development
-
-```bash
-python -m pip install -e '.[dev]'
-pytest
-```
+- Preserve originals and work on copies.
+- Treat AI suggestions as proposals, not proof of compatibility.
+- The project is not intended for anti-cheat bypass, account tampering, or live game-memory modification.
 
 See `docs/ROADMAP.md` for planned milestones.

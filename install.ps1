@@ -2,18 +2,15 @@ $ErrorActionPreference = 'Stop'
 
 Write-Host '=== SkinForge AI setup ===' -ForegroundColor Cyan
 
-$python = Get-Command py -ErrorAction SilentlyContinue
-if ($python) {
-    $pythonArgs = @('-3')
-    & $python.Source @pythonArgs -c 'import sys; print(sys.version)' 2>$null
+$pythonCommand = $null
+$pythonPrefix = @()
+$launcher = Get-Command py -ErrorAction SilentlyContinue
+if ($launcher) {
+    & $launcher.Source -3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' 2>$null
     if ($LASTEXITCODE -eq 0) {
-        $pythonCommand = $python.Source
+        $pythonCommand = $launcher.Source
         $pythonPrefix = @('-3')
-    } else {
-        $pythonCommand = $null
     }
-} else {
-    $pythonCommand = $null
 }
 
 if (-not $pythonCommand) {
@@ -26,7 +23,6 @@ if (-not $pythonCommand) {
         throw 'Python 3.11+ is required.'
     }
     $pythonCommand = $python.Source
-    $pythonPrefix = @()
 }
 
 Write-Host '[1/3] Installing SkinForge AI...' -ForegroundColor Cyan
