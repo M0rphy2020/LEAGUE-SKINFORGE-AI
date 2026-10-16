@@ -25,10 +25,13 @@ def tint_texture(
     color: str,
     *,
     strength: float = 0.35,
+    brightness: float = 1.0,
+    contrast: float = 1.0,
+    saturation: float = 1.0,
 ) -> dict[str, Any]:
     """Blend a chosen RGB tint into a raster texture, preserving alpha, to a new file."""
     try:
-        from PIL import Image, ImageColor
+        from PIL import Image, ImageColor, ImageEnhance
     except ImportError as exc:
         raise TextureEditError(
             "Texture editing needs Pillow. Install it with: python -m pip install 'skinforge-ai[texture]'"
@@ -51,6 +54,9 @@ def tint_texture(
         raise FileExistsError(f"Output already exists: {dst}")
     if not 0.0 <= strength <= 1.0:
         raise TextureEditError("Strength must be between 0.0 and 1.0.")
+    for name, value in (("brightness", brightness), ("contrast", contrast), ("saturation", saturation)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0.0 <= value <= 2.0:
+            raise TextureEditError(f"{name.capitalize()} must be between 0.0 and 2.0.")
     try:
         rgb = ImageColor.getrgb(color)
     except (ValueError, TypeError) as exc:
@@ -64,7 +70,11 @@ def tint_texture(
             overlay = Image.new("RGBA", image.size, (*rgb, 255))
             # Blend in RGB only, then restore the original alpha exactly.
             base_rgb = image.convert("RGB")
-            tinted = Image.blend(base_rgb, overlay.convert("RGB"), strength).convert("RGBA")
+            tinted_rgb = Image.blend(base_rgb, overlay.convert("RGB"), strength)
+            tinted_rgb = ImageEnhance.Brightness(tinted_rgb).enhance(brightness)
+            tinted_rgb = ImageEnhance.Contrast(tinted_rgb).enhance(contrast)
+            tinted_rgb = ImageEnhance.Color(tinted_rgb).enhance(saturation)
+            tinted = tinted_rgb.convert("RGBA")
             tinted.putalpha(alpha)
             if dst.suffix.lower() == ".jpg" or dst.suffix.lower() == ".jpeg":
                 raise TextureEditError("JPEG output is intentionally disabled to preserve transparency.")
@@ -85,6 +95,9 @@ def tint_texture(
         "size": list(tinted.size),
         "tint": color,
         "strength": strength,
+        "brightness": brightness,
+        "contrast": contrast,
+        "saturation": saturation,
         "alpha_preserved": True,
         "source_sha256": sha256(src),
         "output_sha256": sha256(dst),
