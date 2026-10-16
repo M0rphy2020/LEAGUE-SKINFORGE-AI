@@ -17,12 +17,12 @@ from typing import Any
 
 from skinforge.ai import create_edit_recipe, create_plan
 from skinforge.archive import extract_zip_safe, inspect_zip, validate_zip
-from skinforge.bininspect import inspect_bin
 from skinforge.assets import index_assets
+from skinforge.bininspect import inspect_bin
 from skinforge.texture import tint_texture
 from skinforge.updater import UpdateError, check_for_update, install_latest_update
-from skinforge.workflow import apply_edit_recipe, parse_edit_recipe
 from skinforge.wad import extract_wad
+from skinforge.workflow import apply_edit_recipe, parse_edit_recipe
 
 BG = "#10131b"
 PANEL = "#191f2b"
@@ -307,12 +307,13 @@ class SkinForgeDesktop:
             return
         source_path = Path(source).expanduser().resolve()
         output_path = Path(output).expanduser().resolve()
-        if output_path == source_path.parent or source_path.parent in output_path.parents:
-            if messagebox.askyesno(
-                "Check output folder",
-                "The output folder is inside the source archive's directory tree. Continue only if it is a separate, empty folder.",
-            ) is False:
-                return
+        if (
+            output_path == source_path.parent or source_path.parent in output_path.parents
+        ) and not messagebox.askyesno(
+            "Check output folder",
+            "The output folder is inside the source archive's directory tree. Continue only if it is a separate, empty folder.",
+        ):
+            return
 
         def extract() -> dict[str, Any]:
             result = extract_wad(source_path, output_path)
