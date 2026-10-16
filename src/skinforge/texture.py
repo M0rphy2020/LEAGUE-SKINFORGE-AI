@@ -28,7 +28,7 @@ def tint_texture(
 ) -> dict[str, Any]:
     """Blend a chosen RGB tint into a raster texture, preserving alpha, to a new file."""
     try:
-        from PIL import Image, ImageColor, ImageEnhance
+        from PIL import Image, ImageColor
     except ImportError as exc:
         raise TextureEditError(
             "Texture editing needs Pillow. Install it with: python -m pip install 'skinforge-ai[texture]'"
