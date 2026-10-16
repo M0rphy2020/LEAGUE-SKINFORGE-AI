@@ -95,6 +95,53 @@ def validate_zip(path: str | Path) -> dict[str, Any]:
     return report
 
 
+
+def extract_zip_safe(path: str | Path, output_dir: str | Path) -> dict[str, Any]:
+    """Extract a ZIP/Fantome archive without allowing traversal or symlink entries."""
+    import shutil
+
+    source = Path(path)
+    target = Path(output_dir).resolve()
+    report = validate_zip(source)
+    if not report["valid"]:
+        raise ArchiveInspectionError(
+            "Archive failed validation; refusing extraction: " + "; ".join(report["issues"])
+        )
+    if target.exists() and any(target.iterdir()):
+        raise FileExistsError(f"Refusing to extract into a non-empty directory: {target}")
+
+    target.mkdir(parents=True, exist_ok=True)
+    extracted: list[str] = []
+    try:
+        with zipfile.ZipFile(source) as archive:
+            for item in archive.infolist():
+                if not _safe_member_name(item.filename):
+                    raise ArchiveInspectionError(f"Unsafe archive path: {item.filename}")
+                file_type = (item.external_attr >> 16) & 0o170000
+                if file_type == 0o120000:
+                    raise ArchiveInspectionError(f"Symbolic links are not supported: {item.filename}")
+                destination = (target / item.filename).resolve()
+                if destination != target and target not in destination.parents:
+                    raise ArchiveInspectionError(f"Archive path escapes destination: {item.filename}")
+                if item.is_dir():
+                    destination.mkdir(parents=True, exist_ok=True)
+                    continue
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                with archive.open(item, "r") as src, destination.open("wb") as dst:
+                    while chunk := src.read(1024 * 1024):
+                        dst.write(chunk)
+                extracted.append(item.filename)
+    except Exception:
+        shutil.rmtree(target, ignore_errors=True)
+        raise
+    return {
+        "source": str(source),
+        "output": str(target),
+        "extracted_count": len(extracted),
+        "files": extracted,
+    }
+
+
 def write_report(report: dict[str, Any], output: str | Path) -> Path:
     target = Path(output)
     target.parent.mkdir(parents=True, exist_ok=True)
