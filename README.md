@@ -27,7 +27,7 @@ skinforge wad-extract "C:\path\to\Champion.wad.client" --output .\extracted
 skinforge doctor
 ```
 
-`inspect` reports package contents and hashes. `validate` checks archive paths and CRCs. `archive-extract` validates the ZIP/Fantome archive before extracting it, blocks traversal and symlink entries, and refuses a non-empty destination. `wad-extract` delegates WAD extraction to LeagueToolkit `wadtools` and also refuses a non-empty destination.
+`inspect` reports package contents and hashes. `validate` checks archive paths and CRCs. `archive-extract` validates the ZIP/Fantome archive before extracting it, blocks traversal and symlink entries, and refuses a non-empty destination. `wad-extract` delegates WAD extraction to LeagueToolkit `wadtools` and also refuses a non-empty destination. `asset-index` categorizes extracted files (textures, models, materials, animation, audio, BIN, WAD and other), reports sizes and can compute SHA-256 hashes.
 
 ## AI: what works today?
 
@@ -45,6 +45,7 @@ The project loads only the three documented `SKINFORGE_AI_*` settings from `.env
 
 - Safe archive inspection, SHA-256 reporting, CRC/path validation, and guarded ZIP/Fantome extraction.
 - `wadtools` integration for `.wad` and `.wad.client` extraction.
+- Deterministic asset inventory with file-type categories and optional SHA-256 hashing.
 - Conservative BIN inspection for readable text/JSON candidates; opaque BIN data is not falsely claimed to be decoded.
 - Optional AI-assisted investigation plans.
 - Planned: deeper BIN parsing, cross-asset references, reversible asset edits, texture/model workflows, previewing, packaging, and a desktop UI.
