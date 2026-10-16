@@ -165,6 +165,8 @@ class SkinForgeDesktop:
         self._make_card(cards, "PACKAGE INSPECTOR", "Review files, sizes and archive metadata.", "Inspect package", self._inspect)
         self._make_card(cards, "SAFE EXTRACT", "Validate the archive before extracting files.", "Extract package", self._extract)
         self._make_card(cards, "ASSET INDEX", "Sort textures, models, BIN, audio and more.", "Index output folder", self._index)
+        self._make_card(cards, "WAD EXTRACTOR", "Open .wad.client archives using LeagueToolkit.", "Extract WAD", self._extract_wad)
+        self._make_card(cards, "BIN VIEWER", "Inspect hex bytes and readable strings.", "Open BIN", self._inspect_bin)
         self._label(overview, "ACTIVITY & RESULTS", color=MUTED).pack(anchor="w", pady=(18, 8))
         self.log = tk.Text(
             overview, bg=PANEL, fg=TEXT, insertbackground=TEXT, relief="flat",
