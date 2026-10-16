@@ -12,7 +12,7 @@ After installing, launch the graphical workspace with:
 skinforge-gui
 ```
 
-The desktop workspace provides package browsing, validation, guarded extraction, an asset inventory table, an AI work-plan panel, an in-app AI Settings dialog, release-based update checks, a non-destructive raster texture tint tool, and a constrained AI edit workflow that can generate and apply confirmed tint operations to supported raster files. It checks for updates quietly when launched and offers to install a newer official GitHub Release when one is available. You can also press **Check for updates** in the footer. Add your compatible provider URL, model and API key in that dialog; settings are stored locally under your user profile, not in the repository. It uses Python's built-in Tkinter UI, so it does not require a large GUI framework. The current AI panel proposes a skin-development plan; it does not yet modify 3D models or textures automatically.
+The desktop workspace provides package browsing, validation, guarded extraction, a WAD/WAD.CLIENT extraction action, BIN hex/string inspection, an asset inventory table, an AI work-plan panel, an in-app AI Settings dialog, release-based update checks, a non-destructive raster texture tint tool, and a constrained AI edit workflow that can generate and apply confirmed tint operations to supported raster files. It checks for updates quietly when launched and offers to install a newer official GitHub Release when one is available. You can also press **Check for updates** in the footer. Add your compatible provider URL, model and API key in that dialog; settings are stored locally under your user profile, not in the repository. It uses Python's built-in Tkinter UI, so it does not require a large GUI framework. The AI panel can propose plans and apply confirmed edits to supported raster textures. It does not yet decode Riot BIN files into full semantic trees, edit 3D models, decode game-specific DDS/TEX containers, compile a final skin package, or verify results in-game.
 
 ## Quick install on Windows
 
@@ -60,10 +60,10 @@ The project loads only the three documented `SKINFORGE_AI_*` settings from `.env
 - Safe archive inspection, SHA-256 reporting, CRC/path validation, and guarded ZIP/Fantome extraction.
 - `wadtools` integration for `.wad` and `.wad.client` extraction.
 - Deterministic asset inventory with file-type categories and optional SHA-256 hashing.
-- Conservative BIN inspection for readable text/JSON candidates; opaque BIN data is not falsely claimed to be decoded.
-- Optional AI-assisted investigation plans.
+- BIN inspection with a hex preview, byte offsets, readable ASCII strings, and conservative JSON/text detection. This is a low-level viewer, not a complete Riot BIN semantic decoder.
+- Optional AI-assisted investigation plans and confirmed raster texture edits.
 - Visual desktop workspace with package inspection, guarded extraction, asset inventory and an AI planning panel.
-- Planned: deeper BIN parsing, cross-asset references, reversible asset edits, texture/model workflows, previewing, and validated package building.
+- Planned: full Riot BIN parsing/editing, game-specific DDS/TEX adapters, cross-asset references, model workflows, previewing, and validated Fantome package building.
 
 ## Development
 
