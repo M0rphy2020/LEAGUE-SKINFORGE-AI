@@ -334,8 +334,8 @@ class SkinForgeDesktop:
                         self._handle_update_result(payload)
                 else:
                     label, result, callback = payload
-                    callback(result)
                     self.status.set(label + " complete")
+                    callback(result)
         except queue.Empty:
             pass
         self.root.after(120, self._poll_jobs)
