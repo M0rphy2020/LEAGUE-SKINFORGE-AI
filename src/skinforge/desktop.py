@@ -9,11 +9,12 @@ import json
 import queue
 import threading
 import tkinter as tk
+from collections.abc import Callable
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-from typing import Any, Callable
+from typing import Any
 
-from skinforge.ai import AIConfigurationError, create_plan
+from skinforge.ai import create_plan
 from skinforge.archive import extract_zip_safe, inspect_zip, validate_zip
 from skinforge.assets import index_assets
 
@@ -260,7 +261,7 @@ class SkinForgeDesktop:
             try:
                 result = job()
                 self.jobs.put(("success", (label, result, callback)))
-            except Exception as exc:
+            except (OSError, ValueError, RuntimeError) as exc:
                 self.jobs.put(("error", (label, str(exc))))
 
         threading.Thread(target=worker, daemon=True).start()
