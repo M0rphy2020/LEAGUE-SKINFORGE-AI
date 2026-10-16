@@ -115,7 +115,7 @@ def create_edit_recipe(request: str, inventory: dict[str, Any]) -> str:
                     "\"color\":\"#RRGGBB\",\"strength\":0.0}]}. You may only propose "
                     "tint_texture operations on raster image files explicitly listed in the supplied "
                     "inventory. source must exactly match a listed relative path. Use at most 20 edits. "
-                    "Strength must be 0..1. If no appropriate supported texture exists, return an empty "
+                    "Strength must be 0..1; brightness, contrast and saturation must each be 0..2, where 1 means unchanged. If no appropriate supported texture exists, return an empty "
                     "edits list and explain why in summary. Never invent paths. Do not propose commands, "
                     "code, model edits, DDS/TEX edits, BIN edits, game memory changes, or anti-cheat bypass."
                 ),
