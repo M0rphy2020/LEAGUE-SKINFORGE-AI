@@ -126,6 +126,7 @@ def install_latest_update(release_info: dict[str, Any]) -> str:
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "pip", "install", "--upgrade", "--no-deps", str(wheel_path)],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=180,
