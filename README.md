@@ -4,6 +4,16 @@ AI-assisted League of Legends custom-skin inspection and development toolkit.
 
 > **Status: early development.** The current version inspects and validates `.fantome` ZIP containers, can extract `.wad.client` archives through LeagueToolkit `wadtools`, and asks an optional AI endpoint for an investigation plan. It does not yet generate complete working 3D skins or guarantee in-game behavior.
 
+## Visual desktop app
+
+After installing, launch the graphical workspace with:
+
+```powershell
+skinforge-gui
+```
+
+The desktop workspace provides package browsing, validation, guarded extraction, an asset inventory table, and an AI work-plan panel. It uses Python's built-in Tkinter UI, so it does not require a large GUI framework. The current AI panel proposes a skin-development plan; it does not yet modify 3D models or textures automatically.
+
 ## Quick install on Windows
 
 Requirements: Python 3.11+ and Windows PowerShell. From the repository folder, run:
@@ -31,6 +41,8 @@ skinforge doctor
 
 ## AI: what works today?
 
+SkinForge AI is a domain-focused orchestration layer for custom-skin development, not a newly trained foundation model. It uses a configurable compatible model and supplies League asset context, workflow constraints and validation requirements. A truly autonomous asset-editing agent still needs robust BIN/model/texture adapters and reversible build tools; those are not present yet.
+
 The AI layer sends a package report and your request to an OpenAI-compatible chat-completions endpoint. It can produce an investigation plan and separate confirmed observations from hypotheses. It currently **does not** directly edit model/texture/animation assets, compile a custom skin, or verify the result in-game.
 
 To configure it, copy `.env.example` to `.env` and set your provider's base URL, model name, and API key if required. Keep `.env` private and never commit credentials. Then run:
@@ -48,7 +60,8 @@ The project loads only the three documented `SKINFORGE_AI_*` settings from `.env
 - Deterministic asset inventory with file-type categories and optional SHA-256 hashing.
 - Conservative BIN inspection for readable text/JSON candidates; opaque BIN data is not falsely claimed to be decoded.
 - Optional AI-assisted investigation plans.
-- Planned: deeper BIN parsing, cross-asset references, reversible asset edits, texture/model workflows, previewing, packaging, and a desktop UI.
+- Visual desktop workspace with package inspection, guarded extraction, asset inventory and an AI planning panel.
+- Planned: deeper BIN parsing, cross-asset references, reversible asset edits, texture/model workflows, previewing, and validated package building.
 
 ## Development
 
