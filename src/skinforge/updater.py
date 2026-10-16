@@ -55,6 +55,12 @@ def _request(url: str, token: str, *, accept: str = "application/vnd.github+json
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
             return response.read()
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404 and url == RELEASES_API:
+            raise UpdateError(
+                "No GitHub Release has been published for SkinForge AI yet. The updater can work after a versioned release with a .whl asset is published."
+            ) from exc
+        raise UpdateError(f"GitHub request failed with HTTP {exc.code}. Check repository access.") from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         raise UpdateError(
             "Could not reach GitHub Releases. Check your internet connection and repository access."
