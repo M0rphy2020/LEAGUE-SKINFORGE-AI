@@ -18,8 +18,8 @@ from typing import Any
 from skinforge.ai import create_plan
 from skinforge.archive import extract_zip_safe, inspect_zip, validate_zip
 from skinforge.assets import index_assets
-from skinforge.updater import UpdateError, check_for_update, install_latest_update
 from skinforge.texture import tint_texture
+from skinforge.updater import UpdateError, check_for_update, install_latest_update
 
 BG = "#10131b"
 PANEL = "#191f2b"
