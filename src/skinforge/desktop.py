@@ -345,7 +345,7 @@ class SkinForgeDesktop:
             self._append("BIN inspection (metadata only, not full Riot BIN decoding):\n" +
                          json.dumps(report, indent=2, ensure_ascii=False))
             self.ai_output.delete("1.0", "end")
-            self.ai_output.insert("1.0", json.dumps(report, indent=2, ensure_ascii=False))
+            self.ai_output.insert("1.0", json.dumps(report, indent=2, ensure_ascii=False)[:50000])
 
         self._run_background("Inspecting BIN metadata", lambda: inspect_bin(source), done)
 
