@@ -55,17 +55,26 @@ def apply_edit_recipe(
         raise EditWorkflowError("Output folder must be separate from the input asset folder.")
     if output.exists() and any(output.iterdir()):
         raise FileExistsError(f"Output folder must be empty to avoid overwriting files: {output}")
-    output.mkdir(parents=True, exist_ok=True)
-    results = []
+    planned: list[tuple[dict[str, Any], Path, Path]] = []
+    seen_outputs: set[Path] = set()
     for edit in recipe["edits"]:
         source = (root / edit["source"]).resolve()
         if root not in source.parents or not source.is_file():
             raise EditWorkflowError(f"Source asset is missing or outside the selected folder: {edit['source']}")
         relative = source.relative_to(root)
         destination = output / relative.with_suffix(".png")
-        destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination in seen_outputs:
+            raise EditWorkflowError(f"Multiple edits target the same output: {destination}")
         if destination.exists():
             raise FileExistsError(f"Refusing to overwrite output: {destination}")
+        seen_outputs.add(destination)
+        planned.append((edit, source, destination))
+
+    # Validate the entire plan before writing any output, avoiding avoidable partial edits.
+    output.mkdir(parents=True, exist_ok=True)
+    results = []
+    for edit, source, destination in planned:
+        destination.parent.mkdir(parents=True, exist_ok=True)
         results.append(tint_texture(source, destination, edit["color"], strength=float(edit.get("strength", 0.35))))
     report = {"operation_count": len(results), "input_root": str(root), "output_root": str(output), "results": results}
     (output / "skinforge-edit-report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
