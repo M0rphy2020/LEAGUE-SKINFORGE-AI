@@ -11,6 +11,7 @@ from pathlib import Path
 from skinforge import __version__
 from skinforge.ai import AIConfigurationError, create_plan
 from skinforge.archive import ArchiveInspectionError, extract_zip_safe, inspect_zip, validate_zip, write_report
+from skinforge.assets import index_assets
 from skinforge.bininspect import inspect_bin
 from skinforge.wad import doctor as wadtools_doctor
 from skinforge.wad import extract_wad, install_wadtools
@@ -36,6 +37,10 @@ def main() -> None:
     extract_archive_cmd = commands.add_parser("archive-extract", help="Safely extract a validated ZIP/Fantome package")
     extract_archive_cmd.add_argument("file", type=Path)
     extract_archive_cmd.add_argument("--output", type=Path, required=True)
+
+    index_cmd = commands.add_parser("asset-index", help="Inventory extracted assets by type and SHA-256")
+    index_cmd.add_argument("directory", type=Path)
+    index_cmd.add_argument("--no-hash", action="store_true", help="Skip file hashes for faster indexing")
 
     bin_cmd = commands.add_parser("bin-inspect", help="Identify readable BIN candidates")
     bin_cmd.add_argument("file", type=Path)
@@ -67,6 +72,8 @@ def main() -> None:
                 raise SystemExit(2)
         elif args.command == "archive-extract":
             _print_json(extract_zip_safe(args.file, args.output))
+        elif args.command == "asset-index":
+            _print_json(index_assets(args.directory, hash_files=not args.no_hash))
         elif args.command == "bin-inspect":
             _print_json(inspect_bin(args.file))
         elif args.command == "wad-extract":
