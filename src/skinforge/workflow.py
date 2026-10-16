@@ -79,7 +79,17 @@ def apply_edit_recipe(
     results = []
     for edit, source, destination in planned:
         destination.parent.mkdir(parents=True, exist_ok=True)
-        results.append(tint_texture(\n            source, destination, edit["color"], strength=float(edit.get("strength", 0.35)),\n            brightness=float(edit.get("brightness", 1.0)),\n            contrast=float(edit.get("contrast", 1.0)),\n            saturation=float(edit.get("saturation", 1.0)),\n        ))
+        results.append(
+            tint_texture(
+                source,
+                destination,
+                edit["color"],
+                strength=float(edit.get("strength", 0.35)),
+                brightness=float(edit.get("brightness", 1.0)),
+                contrast=float(edit.get("contrast", 1.0)),
+                saturation=float(edit.get("saturation", 1.0)),
+            )
+        )
     report = {"operation_count": len(results), "input_root": str(root), "output_root": str(output), "results": results}
     (output / "skinforge-edit-report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     return report
