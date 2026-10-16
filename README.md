@@ -12,7 +12,7 @@ After installing, launch the graphical workspace with:
 skinforge-gui
 ```
 
-The desktop workspace provides package browsing, validation, guarded extraction, an asset inventory table, an AI work-plan panel, an in-app AI Settings dialog, and release-based update checks. It checks for updates quietly when launched and offers to install a newer official GitHub Release when one is available. You can also press **Check for updates** in the footer. Add your compatible provider URL, model and API key in that dialog; settings are stored locally under your user profile, not in the repository. It uses Python's built-in Tkinter UI, so it does not require a large GUI framework. The current AI panel proposes a skin-development plan; it does not yet modify 3D models or textures automatically.
+The desktop workspace provides package browsing, validation, guarded extraction, an asset inventory table, an AI work-plan panel, an in-app AI Settings dialog, release-based update checks, and a non-destructive raster texture tint tool. It checks for updates quietly when launched and offers to install a newer official GitHub Release when one is available. You can also press **Check for updates** in the footer. Add your compatible provider URL, model and API key in that dialog; settings are stored locally under your user profile, not in the repository. It uses Python's built-in Tkinter UI, so it does not require a large GUI framework. The current AI panel proposes a skin-development plan; it does not yet modify 3D models or textures automatically.
 
 ## Quick install on Windows
 
