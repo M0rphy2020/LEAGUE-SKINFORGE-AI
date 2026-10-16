@@ -38,3 +38,23 @@ def test_non_zip_is_rejected(tmp_path: Path) -> None:
     bad.write_bytes(b"not a zip")
     with pytest.raises(ArchiveInspectionError):
         inspect_zip(bad)
+
+
+
+def test_safe_extract_writes_archive_files(tmp_path: Path) -> None:
+    from skinforge.archive import extract_zip_safe
+
+    archive = make_archive(tmp_path / "skin.fantome", {"META/info.json": b'{"name":"demo"}'})
+    output = tmp_path / "out"
+    report = extract_zip_safe(archive, output)
+    assert report["extracted_count"] == 1
+    assert (output / "META" / "info.json").read_bytes() == b'{"name":"demo"}'
+
+
+def test_safe_extract_refuses_traversal(tmp_path: Path) -> None:
+    from skinforge.archive import extract_zip_safe
+
+    archive = make_archive(tmp_path / "bad.fantome", {"../outside.txt": b"no"})
+    with pytest.raises(ArchiveInspectionError):
+        extract_zip_safe(archive, tmp_path / "out")
+    assert not (tmp_path / "outside.txt").exists()
