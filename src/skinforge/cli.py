@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -11,7 +12,8 @@ from skinforge import __version__
 from skinforge.ai import AIConfigurationError, create_plan
 from skinforge.archive import ArchiveInspectionError, inspect_zip, validate_zip, write_report
 from skinforge.bininspect import inspect_bin
-from skinforge.wad import doctor as wadtools_doctor, extract_wad
+from skinforge.wad import doctor as wadtools_doctor
+from skinforge.wad import extract_wad, install_wadtools
 
 
 def _print_json(value: object) -> None:
@@ -34,11 +36,12 @@ def main() -> None:
     bin_cmd = commands.add_parser("bin-inspect", help="Identify readable BIN candidates")
     bin_cmd.add_argument("file", type=Path)
 
-    extract_cmd = commands.add_parser("wad-extract", help="Extract WAD using installed wadtools")
+    extract_cmd = commands.add_parser("wad-extract", help="Extract WAD using wadtools")
     extract_cmd.add_argument("file", type=Path)
     extract_cmd.add_argument("--output", type=Path, required=True)
 
     commands.add_parser("doctor", help="Check optional tool availability")
+    commands.add_parser("setup", help="Install the official wadtools dependency on Windows")
 
     plan_cmd = commands.add_parser("ai-plan", help="Ask an AI endpoint for an investigation plan")
     plan_cmd.add_argument("file", type=Path)
@@ -71,9 +74,13 @@ def main() -> None:
             _print_json({
                 "python": sys.version.split()[0],
                 "wadtools": wadtools_doctor(),
-                "ai_configured": bool(__import__("os").getenv("SKINFORGE_AI_BASE_URL")
-                                      and __import__("os").getenv("SKINFORGE_AI_MODEL")),
+                "ai_configured": bool(os.getenv("SKINFORGE_AI_BASE_URL") and os.getenv("SKINFORGE_AI_MODEL")),
+                "ai_note": "AI plans investigations only; it does not yet author complete working skins.",
             })
+        elif args.command == "setup":
+            executable = install_wadtools()
+            print(f"wadtools is ready: {executable}")
+            print("Next: run `skinforge doctor` to verify the setup.")
         elif args.command == "ai-plan":
             report = inspect_zip(args.file)
             print(create_plan(args.request, report))
