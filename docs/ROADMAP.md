@@ -7,7 +7,7 @@
 - [x] Conservative BIN candidate inspection
 - [x] Optional wadtools adapter
 - [x] Optional AI planning endpoint
-- [ ] Run CI and validate on Windows
+- [ ] Run CI and validate on Windows\n- [x] Release-based update check and wheel installer (Windows validation still needed)
 
 ## Milestone 1: Real asset understanding
 - [ ] Define a plugin interface for supported WAD/BIN/texture/model tools
@@ -31,8 +31,8 @@
 - [ ] Automated regression reports
 
 ## Milestone 4: Desktop UX
-- [ ] Desktop UI with project browser and logs
-- [ ] Package inspector, diff viewer, and export wizard
+- [x] Desktop UI with project browser and logs
+- [x] Package inspector (diff viewer and export wizard remain planned)
 - [ ] Guided troubleshooting for missing effects and animations
 
 ## Non-goals
