@@ -69,9 +69,7 @@ def create_plan(request: str, report: dict[str, Any]) -> str:
                     "model capability, or successful test. If evidence is insufficient, ask for the exact "
                     "missing input instead of guessing. Prefer a non-destructive workflow with backups and "
                     "a separate output folder. Never propose anti-cheat bypass, live memory manipulation, "
-                    "credential access, or destructive actions. This version can analyze supplied metadata "
-                    "and propose a work order only; it cannot directly edit assets, compile a skin, or "
-                    "verify in-game behavior."
+                    "credential access, or destructive actions. The separate constrained edit workflow can apply user-confirmed raster tint recipes only; this planner itself does not edit assets, compile a skin, or verify in-game behavior."
                 ),
             },
             {
