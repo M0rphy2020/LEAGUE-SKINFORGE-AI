@@ -39,7 +39,7 @@ skinforge doctor
 
 `inspect` reports package contents and hashes. `validate` checks archive paths and CRCs. `archive-extract` validates the ZIP/Fantome archive before extracting it, blocks traversal and symlink entries, and refuses a non-empty destination. `wad-extract` delegates WAD extraction to LeagueToolkit `wadtools` and also refuses a non-empty destination. `asset-index` categorizes extracted files (textures, models, materials, animation, audio, BIN, WAD and other), reports sizes and can compute SHA-256 hashes.
 
-## AI: what works today?
+## AI-assisted texture editing\n\nInstall the optional image dependency with `python -m pip install -e ".[texture]"`. In **AI Skin Assistant**, enter the visual request, choose **Generate & apply supported edits**, select the extracted source folder and a separate empty output folder, review the proposed recipe, and confirm. The output includes a JSON report and source/output hashes; source files are never overwritten.\n\n## AI: what works today?
 
 SkinForge AI is a domain-focused orchestration layer for custom-skin development, not a newly trained foundation model. It uses a configurable compatible model and supplies League asset context, workflow constraints and validation requirements. A truly autonomous asset-editing agent still needs robust BIN/model/texture adapters and reversible build tools; those are not present yet.
 
