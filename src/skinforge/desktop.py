@@ -233,7 +233,24 @@ class SkinForgeDesktop:
         ).pack(side="left", fill="x", expand=True)
         self._button(footer, "Check for updates", self._check_updates).pack(side="right")
 
+    def _ai_provider_configured(self) -> bool:
+        if os.getenv("SKINFORGE_AI_BASE_URL", "").strip() and os.getenv("SKINFORGE_AI_MODEL", "").strip():
+            return True
+        config_path = Path.home() / ".skinforge" / ".env"
+        if not config_path.is_file():
+            return False
+        values: dict[str, str] = {}
+        for line in config_path.read_text(encoding="utf-8").splitlines():
+            key, separator, value = line.partition("=")
+            if separator:
+                values[key.strip()] = value.strip().strip('"').strip("'")
+        return bool(values.get("SKINFORGE_AI_BASE_URL") and values.get("SKINFORGE_AI_MODEL"))
+
     def _ai_apply_edits(self) -> None:
+        if not self._ai_provider_configured():
+            if messagebox.askyesno("Connect SkinForge AI", "No AI provider is configured yet. Open AI Settings now?"):
+                self._ai_settings()
+            return
         request = self.skin_request.get().strip()
         if not request:
             messagebox.showwarning("Describe your skin", "Write the desired visual changes first.")
@@ -610,6 +627,10 @@ class SkinForgeDesktop:
         self._button(panel, "Save AI Settings", save, primary=True).pack(anchor="w", pady=(18, 0))
 
     def _ask_ai(self) -> None:
+        if not self._ai_provider_configured():
+            if messagebox.askyesno("Connect SkinForge AI", "No AI provider is configured yet. Open AI Settings now?"):
+                self._ai_settings()
+            return
         path = self._require_package()
         request = self.skin_request.get().strip()
         if path is None:
