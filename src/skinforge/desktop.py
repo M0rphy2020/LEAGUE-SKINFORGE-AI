@@ -172,8 +172,7 @@ class SkinForgeDesktop:
         self._append(
             "Welcome to SkinForge AI.\n"
             "The GUI is the main workspace; you do not need to type terminal commands.\n"
-            "Current AI mode creates an asset-aware work plan. Direct model/texture editing "
-            "and in-game verification are not implemented yet.\n"
+            "AI can plan changes and apply confirmed edits to supported raster textures. Model editing, game-specific DDS/TEX decoding, package compilation and in-game verification are not implemented yet.\n"
         )
 
         self._label(ai_tab, "DESCRIBE THE SKIN YOU WANT", size=11, color=ACCENT).pack(anchor="w")
@@ -251,6 +250,14 @@ class SkinForgeDesktop:
             inventory = index_assets(root)
             raw = create_edit_recipe(request, inventory)
             recipe = parse_edit_recipe(raw)
+            known_textures = {
+                item["path"] for item in inventory["files"]
+                if item.get("category") == "texture"
+                and Path(item["path"]).suffix.lower() in {".png", ".jpg", ".jpeg", ".tga", ".bmp", ".webp"}
+            }
+            for edit in recipe["edits"]:
+                if edit["source"] not in known_textures:
+                    raise ValueError(f"AI referenced an asset not present in the indexed raster inventory: {edit['source']}")
             return {"recipe": recipe, "asset_root": str(root), "output_root": str(output)}
 
         self._run_background("Generating safe AI edit recipe", generate, self._confirm_ai_edits)
@@ -267,7 +274,7 @@ class SkinForgeDesktop:
             return
         if not messagebox.askyesno(
             "Review AI edit recipe",
-            f"{summary}\\n\\nThe AI proposes {len(edits)} raster texture edit(s). "
+            f"{summary}\n\nThe AI proposes {len(edits)} raster texture edit(s). "
             "Original assets will not be overwritten. Apply them to the selected output folder?",
         ):
             self._append("AI edit recipe generated but not applied.")
