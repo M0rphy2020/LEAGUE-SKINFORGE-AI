@@ -40,7 +40,7 @@ def inspect_bin(path: str | Path, sample_bytes: int = 256) -> dict[str, Any]:
     # Show readable strings with byte offsets to make opaque BIN files inspectable
     # without pretending this is a complete Riot BIN semantic decoder.
     strings = []
-    for match in re.finditer(rb"[\\x20-\\x7e]{4,}", data):
+    for match in re.finditer(rb"[\x20-\x7e]{4,}", data):
         strings.append({"offset": match.start(), "text": match.group().decode("ascii", errors="replace")})
         if len(strings) >= 500:
             break
