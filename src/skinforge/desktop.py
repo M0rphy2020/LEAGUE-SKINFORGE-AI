@@ -15,10 +15,11 @@ from pathlib import Path
 from tkinter import colorchooser, filedialog, messagebox, simpledialog, ttk
 from typing import Any
 
-from skinforge.ai import create_plan
+from skinforge.ai import create_edit_recipe, create_plan
 from skinforge.archive import extract_zip_safe, inspect_zip, validate_zip
 from skinforge.assets import index_assets
 from skinforge.texture import tint_texture
+from skinforge.workflow import apply_edit_recipe, parse_edit_recipe
 from skinforge.updater import UpdateError, check_for_update, install_latest_update
 
 BG = "#10131b"
@@ -188,6 +189,7 @@ class SkinForgeDesktop:
         ai_actions = tk.Frame(ai_tab, bg=BG)
         ai_actions.pack(fill="x")
         self._button(ai_actions, "Ask SkinForge AI", self._ask_ai, primary=True).pack(side="left")
+        self._button(ai_actions, "Generate & apply supported edits", self._ai_apply_edits).pack(side="left", padx=(8, 0))
         self._button(ai_actions, "AI Settings", self._ai_settings).pack(side="left", padx=(8, 0))
         self.ai_output = tk.Text(
             ai_tab, bg=PANEL, fg=TEXT, insertbackground=TEXT, relief="flat",
@@ -227,6 +229,60 @@ class SkinForgeDesktop:
             font=("Segoe UI", 9), anchor="w",
         ).pack(side="left", fill="x", expand=True)
         self._button(footer, "Check for updates", self._check_updates).pack(side="right")
+
+    def _ai_apply_edits(self) -> None:
+        request = self.skin_request.get().strip()
+        if not request:
+            messagebox.showwarning("Describe your skin", "Write the desired visual changes first.")
+            return
+        asset_root = filedialog.askdirectory(title="Choose extracted raster asset folder")
+        if not asset_root:
+            return
+        output_root = filedialog.askdirectory(title="Choose an EMPTY separate output folder")
+        if not output_root:
+            return
+        root = Path(asset_root).expanduser().resolve()
+        output = Path(output_root).expanduser().resolve()
+        if root == output or root in output.parents:
+            messagebox.showerror("Unsafe output folder", "Choose a separate output folder, not inside the source.")
+            return
+
+        def generate() -> dict[str, Any]:
+            inventory = index_assets(root)
+            raw = create_edit_recipe(request, inventory)
+            recipe = parse_edit_recipe(raw)
+            return {"recipe": recipe, "asset_root": str(root), "output_root": str(output)}
+
+        self._run_background("Generating safe AI edit recipe", generate, self._confirm_ai_edits)
+
+    def _confirm_ai_edits(self, payload: dict[str, Any]) -> None:
+        recipe = payload["recipe"]
+        summary = str(recipe.get("summary", "AI proposed supported texture edits."))
+        edits = recipe["edits"]
+        preview = json.dumps(recipe, indent=2, ensure_ascii=False)
+        self.ai_output.delete("1.0", "end")
+        self.ai_output.insert("1.0", preview[:30000])
+        if not edits:
+            messagebox.showinfo("No supported edits proposed", summary)
+            return
+        if not messagebox.askyesno(
+            "Review AI edit recipe",
+            f"{summary}\\n\\nThe AI proposes {len(edits)} raster texture edit(s). "
+            "Original assets will not be overwritten. Apply them to the selected output folder?",
+        ):
+            self._append("AI edit recipe generated but not applied.")
+            return
+
+        def apply() -> dict[str, Any]:
+            return apply_edit_recipe(recipe, payload["asset_root"], payload["output_root"])
+
+        self._run_background(
+            "Applying confirmed AI texture edits",
+            apply,
+            lambda report: self._append(
+                "AI texture workflow complete:\\n" + json.dumps(report, indent=2, ensure_ascii=False)[:30000]
+            ),
+        )
 
     def _tint_texture(self) -> None:
         source = filedialog.askopenfilename(
