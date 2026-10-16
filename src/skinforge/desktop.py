@@ -18,6 +18,7 @@ from typing import Any
 from skinforge.ai import create_plan
 from skinforge.archive import extract_zip_safe, inspect_zip, validate_zip
 from skinforge.assets import index_assets
+from skinforge.updater import UpdateError, check_for_update, install_latest_update
 
 BG = "#10131b"
 PANEL = "#191f2b"
@@ -46,6 +47,7 @@ class SkinForgeDesktop:
         self._configure_styles()
         self._build_layout()
         self.root.after(120, self._poll_jobs)
+        self.root.after(1800, self._check_updates_on_startup)
 
     def _configure_styles(self) -> None:
         style = ttk.Style()
@@ -219,7 +221,55 @@ class SkinForgeDesktop:
         tk.Label(
             footer, textvariable=self.status, bg=PANEL, fg=SUCCESS,
             font=("Segoe UI", 9), anchor="w",
-        ).pack(fill="x")
+        ).pack(side="left", fill="x", expand=True)
+        self._button(footer, "Check for updates", self._check_updates).pack(side="right")
+
+    def _check_updates_on_startup(self) -> None:
+        """Check quietly at launch; only interrupt the user when an update exists."""
+        def worker() -> None:
+            try:
+                self.jobs.put(("startup_update", check_for_update()))
+            except (UpdateError, RuntimeError, ValueError):
+                # Startup must remain usable when GitHub is unreachable or private-repo auth
+                # has not been configured. The user can run a manual check from the footer.
+                return
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _check_updates(self) -> None:
+        self._run_background("Checking for updates", check_for_update, self._handle_update_result)
+
+    def _handle_update_result(self, info: dict[str, Any]) -> None:
+        latest = info.get("latest_version", "unknown")
+        current = info.get("current_version", "unknown")
+        if not info.get("update_available"):
+            messagebox.showinfo("SkinForge AI is up to date", f"Installed version: {current}")
+            return
+        if not info.get("wheel"):
+            messagebox.showwarning(
+                "Update found",
+                f"Version {latest} is available, but this release has no installable wheel yet.\n\n"
+                f"Open the release page?\n{info.get('release_url', '')}",
+            )
+            return
+        if messagebox.askyesno(
+            "SkinForge AI update available",
+            f"Installed: {current}\nLatest: {latest}\n\n"
+            "Download and install the official release now? The app will need to be restarted.",
+        ):
+            self._run_background(
+                "Installing update",
+                lambda: install_latest_update(info),
+                self._update_installed,
+            )
+
+    def _update_installed(self, version: str) -> None:
+        self._append(f"SkinForge AI {version} installed. Restart the app to use the new version.")
+        self.status.set(f"Updated to {version}; restart required")
+        messagebox.showinfo(
+            "Update installed",
+            f"SkinForge AI {version} was installed. Close and reopen the app to finish updating.",
+        )
 
     def _make_card(
         self, parent: tk.Widget, title: str, description: str, button: str, command: Callable[[], None]
@@ -279,6 +329,9 @@ class SkinForgeDesktop:
                     self.status.set(label + " failed")
                     self._append("ERROR: " + error)
                     messagebox.showerror(label, error)
+                elif kind == "startup_update":
+                    if payload.get("update_available"):
+                        self._handle_update_result(payload)
                 else:
                     label, result, callback = payload
                     callback(result)
