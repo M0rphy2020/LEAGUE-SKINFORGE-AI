@@ -12,7 +12,7 @@ After installing, launch the graphical workspace with:
 skinforge-gui
 ```
 
-The desktop workspace provides package browsing, validation, guarded extraction, an asset inventory table, and an AI work-plan panel. It uses Python's built-in Tkinter UI, so it does not require a large GUI framework. The current AI panel proposes a skin-development plan; it does not yet modify 3D models or textures automatically.
+The desktop workspace provides package browsing, validation, guarded extraction, an asset inventory table, an AI work-plan panel, and an in-app AI Settings dialog. Add your compatible provider URL, model and API key in that dialog; settings are stored locally under your user profile, not in the repository. It uses Python's built-in Tkinter UI, so it does not require a large GUI framework. The current AI panel proposes a skin-development plan; it does not yet modify 3D models or textures automatically.
 
 ## Quick install on Windows
 
@@ -45,7 +45,7 @@ SkinForge AI is a domain-focused orchestration layer for custom-skin development
 
 The AI layer sends a package report and your request to an OpenAI-compatible chat-completions endpoint. It can produce an investigation plan and separate confirmed observations from hypotheses. It currently **does not** directly edit model/texture/animation assets, compile a custom skin, or verify the result in-game.
 
-To configure it, copy `.env.example` to `.env` and set your provider's base URL, model name, and API key if required. Keep `.env` private and never commit credentials. Then run:
+Configure the provider in the desktop app's **AI Settings** dialog, or set the documented variables in a local `.env` file. Keep API keys private and never commit credentials. To use the CLI instead, run:
 
 ```powershell
 skinforge ai-plan "C:\path\to\skin.fantome" --request "Describe the issue or custom-skin goal"
