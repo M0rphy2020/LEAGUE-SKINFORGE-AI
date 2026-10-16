@@ -17,6 +17,7 @@ dev = ["pytest>=8.0", "ruff>=0.6"]
 
 [project.scripts]
 skinforge = "skinforge.cli:main"
+skinforge-gui = "skinforge.desktop:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
