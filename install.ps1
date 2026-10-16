@@ -31,9 +31,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Could not update pip.' }
 & $pythonCommand @pythonPrefix -m pip install -e .
 if ($LASTEXITCODE -ne 0) { throw 'SkinForge installation failed.' }
 
-Write-Host '[2/3] Installing wadtools for the current Windows user...' -ForegroundColor Cyan
+Write-Host '[2/3] Installing optional WAD tools for the current Windows user...' -ForegroundColor Cyan
 & $pythonCommand @pythonPrefix -m skinforge.cli setup
-if ($LASTEXITCODE -ne 0) { throw 'wadtools setup failed. Run: skinforge setup' }
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning 'wadtools could not be installed automatically. The visual app will still work for package inspection, safe extraction and AI planning; WAD extraction needs a successful wadtools setup.'
+}
 
 Write-Host '[3/3] Checking installation...' -ForegroundColor Cyan
 & $pythonCommand @pythonPrefix -m skinforge.cli doctor
@@ -47,5 +49,16 @@ Write-Host '  skinforge wad-extract "C:\path\to\Champion.wad.client" --output .\
 Write-Host ''
 Write-Host 'AI planning needs an API endpoint/model in a local .env file. See .env.example.'
 Write-Host ''
+$startMenu = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+New-Item -ItemType Directory -Path $startMenu -Force | Out-Null
+$shell = New-Object -ComObject WScript.Shell
+$shortcut = $shell.CreateShortcut((Join-Path $startMenu 'SkinForge AI.lnk'))
+$shortcut.TargetPath = $pythonCommand
+$shortcut.Arguments = (@($pythonPrefix) + @('-m', 'skinforge.desktop') | Where-Object { $_ }) -join ' '
+$shortcut.WorkingDirectory = $PSScriptRoot
+$shortcut.Description = 'Open the SkinForge AI custom-skin workshop'
+$shortcut.Save()
+
+Write-Host 'Created a SkinForge AI shortcut in the Start Menu.' -ForegroundColor Green
 Write-Host 'Launching the visual SkinForge workspace...' -ForegroundColor Cyan
 & $pythonCommand @pythonPrefix -m skinforge.desktop
