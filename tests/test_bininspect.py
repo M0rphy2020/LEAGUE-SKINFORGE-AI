@@ -16,3 +16,12 @@ def test_binary_candidate_is_not_claimed_as_decoded(tmp_path: Path) -> None:
     source.write_bytes(bytes([0, 255, 3, 0, 128]))
     report = inspect_bin(source)
     assert report["json_candidate"] is False
+
+
+def test_binary_inspection_reports_readable_strings_and_hex(tmp_path: Path) -> None:
+    source = tmp_path / "strings.bin"
+    source.write_bytes(b"\\x00\\x01ChampionSkinName\\x00\\xff")
+    report = inspect_bin(source)
+    assert report["readable_strings"][0]["text"] == "ChampionSkinName"
+    assert report["readable_strings"][0]["offset"] == 2
+    assert "hex_preview" in report
