@@ -13,8 +13,7 @@ from skinforge.ai import AIConfigurationError, create_plan
 from skinforge.archive import ArchiveInspectionError, inspect_zip, validate_zip, write_report
 from skinforge.bininspect import inspect_bin
 from skinforge.wad import doctor as wadtools_doctor
-from skinforge.wad import extract_wad
-from skinforge.wad import install_wadtools
+from skinforge.wad import extract_wad, install_wadtools
 
 
 def _print_json(value: object) -> None:
