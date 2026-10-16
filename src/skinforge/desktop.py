@@ -19,8 +19,8 @@ from skinforge.ai import create_edit_recipe, create_plan
 from skinforge.archive import extract_zip_safe, inspect_zip, validate_zip
 from skinforge.assets import index_assets
 from skinforge.texture import tint_texture
-from skinforge.workflow import apply_edit_recipe, parse_edit_recipe
 from skinforge.updater import UpdateError, check_for_update, install_latest_update
+from skinforge.workflow import apply_edit_recipe, parse_edit_recipe
 
 BG = "#10131b"
 PANEL = "#191f2b"
