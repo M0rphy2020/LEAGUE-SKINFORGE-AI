@@ -12,13 +12,14 @@ import threading
 import tkinter as tk
 from collections.abc import Callable
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import colorchooser, filedialog, messagebox, simpledialog, ttk
 from typing import Any
 
 from skinforge.ai import create_plan
 from skinforge.archive import extract_zip_safe, inspect_zip, validate_zip
 from skinforge.assets import index_assets
 from skinforge.updater import UpdateError, check_for_update, install_latest_update
+from skinforge.texture import tint_texture
 
 BG = "#10131b"
 PANEL = "#191f2b"
@@ -204,7 +205,10 @@ class SkinForgeDesktop:
             assets_tab, "Choose an extracted folder with the button below to classify its files.",
             color=MUTED,
         ).pack(anchor="w", pady=(4, 12))
-        self._button(assets_tab, "Choose extracted folder and index", self._choose_and_index).pack(anchor="w")
+        asset_actions = tk.Frame(assets_tab, bg=BG)
+        asset_actions.pack(fill="x", anchor="w")
+        self._button(asset_actions, "Choose extracted folder and index", self._choose_and_index).pack(side="left")
+        self._button(asset_actions, "Tint a raster texture", self._tint_texture).pack(side="left", padx=(8, 0))
         self.asset_table = ttk.Treeview(
             assets_tab, columns=("kind", "size", "path"), show="headings",
         )
@@ -223,6 +227,35 @@ class SkinForgeDesktop:
             font=("Segoe UI", 9), anchor="w",
         ).pack(side="left", fill="x", expand=True)
         self._button(footer, "Check for updates", self._check_updates).pack(side="right")
+
+    def _tint_texture(self) -> None:
+        source = filedialog.askopenfilename(
+            title="Choose a raster texture",
+            filetypes=[("Supported raster textures", "*.png *.jpg *.jpeg *.tga *.bmp *.webp")],
+        )
+        if not source:
+            return
+        selected = colorchooser.askcolor(title="Choose tint color")
+        if not selected or not selected[1]:
+            return
+        strength = simpledialog.askfloat(
+            "Tint strength", "Blend strength from 0.0 to 1.0", initialvalue=0.35,
+            minvalue=0.0, maxvalue=1.0, parent=self.root,
+        )
+        if strength is None:
+            return
+        destination = filedialog.asksaveasfilename(
+            title="Save edited texture as a new file",
+            defaultextension=".png",
+            filetypes=[("PNG image", "*.png"), ("TGA image", "*.tga"), ("WEBP image", "*.webp"), ("BMP image", "*.bmp")],
+        )
+        if not destination:
+            return
+        self._run_background(
+            "Tinting texture",
+            lambda: tint_texture(source, destination, selected[1], strength=strength),
+            lambda report: self._append("Texture edit complete (original preserved):\\n" + json.dumps(report, indent=2)),
+        )
 
     def _check_updates_on_startup(self) -> None:
         """Check quietly at launch; only interrupt the user when an update exists."""
