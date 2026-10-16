@@ -341,6 +341,9 @@ class SkinForgeDesktop:
 
         def ask() -> str:
             report = validate_zip(path)
+            output = Path(self.output_path.get()).expanduser()
+            if output.is_dir():
+                report["extracted_asset_inventory"] = index_assets(output)
             return create_plan(
                 "Custom-skin request: " + request
                 + "\nFocus on League of Legends custom-skin assets, mapping the requested visual changes "
