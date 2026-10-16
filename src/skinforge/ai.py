@@ -92,3 +92,51 @@ def create_plan(request: str, report: dict[str, Any]) -> str:
         return result["choices"][0]["message"]["content"]
     except (urllib.error.URLError, TimeoutError, KeyError, IndexError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"AI request failed: {exc}") from exc
+
+
+def create_edit_recipe(request: str, inventory: dict[str, Any]) -> str:
+    """Ask the configured model for a strict, executable recipe using supported texture operations."""
+    _load_local_env()
+    base_url = os.getenv("SKINFORGE_AI_BASE_URL", "").rstrip("/")
+    api_key = os.getenv("SKINFORGE_AI_API_KEY", "")
+    model = os.getenv("SKINFORGE_AI_MODEL", "")
+    if not base_url or not model:
+        raise AIConfigurationError(
+            "Configure SKINFORGE_AI_BASE_URL and SKINFORGE_AI_MODEL in AI Settings first."
+        )
+    payload = {
+        "model": model,
+        "temperature": 0.1,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are SkinForge AI, a League of Legends custom-skin texture assistant. "
+                    "Return JSON only, exactly shaped as {\"summary\":\"...\",\"edits\":["
+                    "{\"operation\":\"tint_texture\",\"source\":\"relative/path.png\","
+                    "\"color\":\"#RRGGBB\",\"strength\":0.0}]}. You may only propose "
+                    "tint_texture operations on raster image files explicitly listed in the supplied "
+                    "inventory. source must exactly match a listed relative path. Use at most 20 edits. "
+                    "Strength must be 0..1. If no appropriate supported texture exists, return an empty "
+                    "edits list and explain why in summary. Never invent paths. Do not propose commands, "
+                    "code, model edits, DDS/TEX edits, BIN edits, game memory changes, or anti-cheat bypass."
+                ),
+            },
+            {
+                "role": "user",
+                "content": "Visual request:\n" + request + "\n\nAvailable asset inventory:\n"
+                + json.dumps(inventory, ensure_ascii=False)[:40000],
+            },
+        ],
+    }
+    data = json.dumps(payload).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    req = urllib.request.Request(base_url + "/chat/completions", data=data, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=90) as response:
+            result = json.loads(response.read().decode("utf-8"))
+        return result["choices"][0]["message"]["content"]
+    except (urllib.error.URLError, TimeoutError, KeyError, IndexError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"AI edit recipe request failed: {exc}") from exc
