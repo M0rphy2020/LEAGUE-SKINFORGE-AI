@@ -7,6 +7,7 @@ plain-text/JSON candidates; it does not claim to decode opaque Riot BIN data.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -36,4 +37,15 @@ def inspect_bin(path: str | Path, sample_bytes: int = 256) -> dict[str, Any]:
     except UnicodeDecodeError:
         pass
     result["sample_hex"] = data[:sample_bytes].hex(" ")
+    # Show readable strings with byte offsets to make opaque BIN files inspectable
+    # without pretending this is a complete Riot BIN semantic decoder.
+    strings = []
+    for match in re.finditer(rb"[\\x20-\\x7e]{4,}", data):
+        strings.append({"offset": match.start(), "text": match.group().decode("ascii", errors="replace")})
+        if len(strings) >= 500:
+            break
+    result["readable_strings"] = strings
+    result["strings_truncated"] = len(strings) >= 500
+    result["hex_preview_bytes"] = min(len(data), max(sample_bytes, 4096))
+    result["hex_preview"] = data[:result["hex_preview_bytes"]].hex(" ")
     return result
