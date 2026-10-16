@@ -28,7 +28,7 @@ if (-not $pythonCommand) {
 Write-Host '[1/3] Installing SkinForge AI...' -ForegroundColor Cyan
 & $pythonCommand @pythonPrefix -m pip install --upgrade pip
 if ($LASTEXITCODE -ne 0) { throw 'Could not update pip.' }
-& $pythonCommand @pythonPrefix -m pip install -e .
+& $pythonCommand @pythonPrefix -m pip install -e ".[texture]"
 if ($LASTEXITCODE -ne 0) { throw 'SkinForge installation failed.' }
 
 Write-Host '[2/3] Installing optional WAD tools for the current Windows user...' -ForegroundColor Cyan
