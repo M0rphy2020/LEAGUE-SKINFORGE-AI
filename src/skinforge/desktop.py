@@ -6,6 +6,7 @@ Uses Tkinter from the Python standard library so the GUI does not add a heavy UI
 from __future__ import annotations
 
 import json
+import os
 import queue
 import threading
 import tkinter as tk
@@ -181,7 +182,10 @@ class SkinForgeDesktop:
             ai_tab, textvariable=self.skin_request, bg=PANEL, fg=TEXT,
             insertbackground=TEXT, relief="flat", font=("Segoe UI", 11),
         ).pack(fill="x", ipady=12, pady=(0, 10))
-        self._button(ai_tab, "Ask SkinForge AI", self._ask_ai, primary=True).pack(anchor="w")
+        ai_actions = tk.Frame(ai_tab, bg=BG)
+        ai_actions.pack(fill="x")
+        self._button(ai_actions, "Ask SkinForge AI", self._ask_ai, primary=True).pack(side="left")
+        self._button(ai_actions, "AI Settings", self._ai_settings).pack(side="left", padx=(8, 0))
         self.ai_output = tk.Text(
             ai_tab, bg=PANEL, fg=TEXT, insertbackground=TEXT, relief="flat",
             wrap="word", font=("Segoe UI", 10), padx=14, pady=12,
@@ -330,6 +334,65 @@ class SkinForgeDesktop:
         path = filedialog.askdirectory(title="Select an extracted asset folder")
         if path:
             self._index(Path(path))
+
+    def _ai_settings(self) -> None:
+        dialog = tk.Toplevel(self.root)
+        dialog.title("SkinForge AI Settings")
+        dialog.configure(bg=BG)
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        panel = tk.Frame(dialog, bg=PANEL, padx=22, pady=20)
+        panel.pack(fill="both", expand=True, padx=16, pady=16)
+
+        self._label(panel, "CONNECT YOUR AI PROVIDER", size=12, color=ACCENT).pack(anchor="w")
+        self._label(
+            panel,
+            "Use an OpenAI-compatible API endpoint. Your key is saved locally on this computer.",
+            color=MUTED,
+        ).pack(anchor="w", pady=(6, 16))
+
+        fields = (
+            ("API base URL", "SKINFORGE_AI_BASE_URL", False),
+            ("Model name", "SKINFORGE_AI_MODEL", False),
+            ("API key", "SKINFORGE_AI_API_KEY", True),
+        )
+        variables: dict[str, tk.StringVar] = {}
+        for label, key, secret in fields:
+            self._label(panel, label, color=TEXT).pack(anchor="w", pady=(5, 4))
+            variable = tk.StringVar(value=os.getenv(key, ""))
+            variables[key] = variable
+            entry = tk.Entry(
+                panel,
+                textvariable=variable,
+                bg=PANEL_LIGHT,
+                fg=TEXT,
+                insertbackground=TEXT,
+                relief="flat",
+                width=64,
+                show="*" if secret else "",
+                font=("Segoe UI", 10),
+            )
+            entry.pack(fill="x", ipady=8)
+
+        def save() -> None:
+            config_dir = Path.home() / ".skinforge"
+            config_dir.mkdir(parents=True, exist_ok=True)
+            config_path = config_dir / ".env"
+            lines: list[str] = []
+            for _, key, _ in fields:
+                value = variables[key].get().strip()
+                if not value:
+                    continue
+                escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+                lines.append(f'{key}="{escaped}"')
+                os.environ[key] = value
+            config_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            self.status.set("AI settings saved locally")
+            self._append("AI provider settings saved to the local user configuration.")
+            dialog.destroy()
+
+        self._button(panel, "Save AI Settings", save, primary=True).pack(anchor="w", pady=(18, 0))
 
     def _ask_ai(self) -> None:
         path = self._require_package()
