@@ -7,8 +7,8 @@ Only common raster formats are supported here. Game-specific DDS/TEX containers,
 from __future__ import annotations
 
 import hashlib
-from typing import Any
 from pathlib import Path
+from typing import Any
 
 
 SUPPORTED_INPUTS = {".png", ".jpg", ".jpeg", ".tga", ".bmp", ".webp"}
