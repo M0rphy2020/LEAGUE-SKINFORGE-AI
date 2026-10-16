@@ -10,7 +10,6 @@ import hashlib
 from pathlib import Path
 from typing import Any
 
-
 SUPPORTED_INPUTS = {".png", ".jpg", ".jpeg", ".tga", ".bmp", ".webp"}
 SUPPORTED_OUTPUTS = {".png", ".tga", ".bmp", ".webp"}
 
