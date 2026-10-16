@@ -566,9 +566,16 @@ class SkinForgeDesktop:
             ("API key", "SKINFORGE_AI_API_KEY", True),
         )
         variables: dict[str, tk.StringVar] = {}
+        saved_settings: dict[str, str] = {}
+        config_path = Path.home() / ".skinforge" / ".env"
+        if config_path.is_file():
+            for line in config_path.read_text(encoding="utf-8").splitlines():
+                name, separator, raw_value = line.partition("=")
+                if separator and name.strip().startswith("SKINFORGE_AI_"):
+                    saved_settings[name.strip()] = raw_value.strip().strip('"').strip("'")
         for label, key, secret in fields:
             self._label(panel, label, color=TEXT).pack(anchor="w", pady=(5, 4))
-            variable = tk.StringVar(value=os.getenv(key, ""))
+            variable = tk.StringVar(value=os.getenv(key, saved_settings.get(key, "")))
             variables[key] = variable
             entry = tk.Entry(
                 panel,
