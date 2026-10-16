@@ -40,6 +40,10 @@ def parse_edit_recipe(raw: str) -> dict[str, Any]:
             raise EditWorkflowError(f"Edit {index + 1}: color must be a hex RGB value such as #8b5cf6.")
         if isinstance(strength, bool) or not isinstance(strength, (int, float)) or not 0 <= strength <= 1:
             raise EditWorkflowError(f"Edit {index + 1}: strength must be between 0 and 1.")
+        for field in ("brightness", "contrast", "saturation"):
+            value = edit.get(field, 1.0)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 2:
+                raise EditWorkflowError(f"Edit {index + 1}: {field} must be between 0 and 2.")
     return recipe
 
 
@@ -75,7 +79,7 @@ def apply_edit_recipe(
     results = []
     for edit, source, destination in planned:
         destination.parent.mkdir(parents=True, exist_ok=True)
-        results.append(tint_texture(source, destination, edit["color"], strength=float(edit.get("strength", 0.35))))
+        results.append(tint_texture(\n            source, destination, edit["color"], strength=float(edit.get("strength", 0.35)),\n            brightness=float(edit.get("brightness", 1.0)),\n            contrast=float(edit.get("contrast", 1.0)),\n            saturation=float(edit.get("saturation", 1.0)),\n        ))
     report = {"operation_count": len(results), "input_root": str(root), "output_root": str(output), "results": results}
     (output / "skinforge-edit-report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     return report
